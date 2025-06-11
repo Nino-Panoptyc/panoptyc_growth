@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panoptyc Cashier Theft Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to override or extend Tailwind, and for for specific element styling */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Color classes for plans */
+        /* Only one plan, so using a single color for consistency */
+        .plan-single-tier { color: #3b82f6; } /* Blue-500 */
+
+        /* Background and border colors for recommended plans */
+        .recommended-plan-single-tier { border-color: #3b82f6; background-color: #eff6ff; } /* Blue-100 */
+
+        /* Highlight for manually selected plans */
+        .manual-selection-highlight {
+            border-width: 3px !important;
+            border-color: #10B981 !important; /* Tailwind green-500 */
+            box-shadow: 0 0 0 3px #10B981; /* Add a shadow for better visibility */
+        }
+
+        /* Styling for labels */
+        label {
+            font-weight: 500; /* Medium font weight */
+        }
+
+        /* Input group styling */
+        .input-group {
+            margin-bottom: 1rem; /* Spacing between input groups */
+        }
+        .input-group label {
+            display: block; /* Make labels block-level for proper spacing */
+            margin-bottom: 0.25rem; /* Small space below label */
+            color: #374151; /* Gray-700 */
+        }
+        .input-group input {
+            width: 100%; /* Full width inputs */
+            padding: 0.5rem 0.75rem; /* Padding for input fields */
+            border: 1px solid #d1d5db; /* Border color Gray-300 */
+            border-radius: 0.375rem; /* Rounded corners md */
+            box-shadow: inset 0 1px 2px 0 rgb(0 0 0 / 0.05); /* Inner shadow */
+        }
+
+        /* Styling for output values */
+        .output-value {
+            font-weight: 600; /* Semi-bold for output values */
+        }
+
+        /* Card styling */
+        .card {
+            background-color: white;
+            border-radius: 0.5rem; /* Rounded corners */
+            padding: 1.5rem; /* Padding inside the card */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Shadow */
+            margin-bottom: 1.5rem; /* Space below cards */
+        }
+
+        /* Tier card specific styling */
+        .tier-card {
+            text-align: center;
+            border: 1px solid #e5e7eb; /* Border color Gray-200 */
+            cursor: pointer; /* Indicate clickable */
+            transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out; /* Smooth transition for hover effects */
+        }
+        .tier-card:hover {
+            transform: translateY(-2px); /* Slightly lift on hover */
+            box-shadow: 0 6px 10px -1px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1); /* Larger shadow on hover */
+        }
+
+        /* Custom color for specific headings */
+        .text-panoptyc-red {
+            color: #ef1720 !important; /* Added !important to ensure override */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header Section -->
+        <header class="mb-8 text-center">
+            <!-- Removed the logo image as requested -->
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 text-panoptyc-red">Panoptyc Cashier Theft Calculator</h1>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Manual Inputs Section -->
+            <div class="md:col-span-1 card">
+                <h2 class="text-xl font-semibold text-gray-700 text-panoptyc-red mb-4">Manual Inputs</h2>
+                <div class="input-group">
+                    <label for="numLocs">Number of Locations (Corporate+Franchise):</label>
+                    <input type="number" id="numLocs" value="2" min="1" class="form-input rounded-md">
+                </div>
+                <div class="input-group">
+                    <label for="annualRevenue">Annual Revenue per Store ($):</label>
+                    <input type="number" id="annualRevenue" value="1000000" min="0" step="1000" class="form-input rounded-md">
+                </div>
+                <div class="input-group">
+                    <label for="shrinkPercent">Estimated Shrink (%):</label>
+                    <input type="number" id="shrinkPercent" value="10" min="0" max="100" step="0.1" class="form-input rounded-md">
+                </div>
+                <div class="input-group">
+                    <label for="anticipatedReduction">Anticipated Theft Reduction by Panoptyc (%):</label>
+                    <input type="number" id="anticipatedReduction" value="50" min="0" max="100" step="1" class="form-input rounded-md">
+                    <!-- Removed the text below this input as requested -->
+                </div>
+            </div>
+
+            <!-- Main Display Column -->
+            <div class="md:col-span-2">
+                <!-- Shrink Metrics Section -->
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-700 text-panoptyc-red">Shrink Metrics</h2>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between"><span>Cashier Theft Shrink Percentage at 1/3 of theft:</span> <span class="output-value" id="cashierTheftShrinkPercentage">$0.00</span></div>
+                        <div class="flex justify-between"><span>Total Shrink From Cashier Theft/Year ($):</span> <span class="output-value" id="totalShrinkCashierTheftYear">$0.00</span></div>
+                        <div class="flex justify-between"><span>Total Revenue/Year ($):</span> <span class="output-value" id="totalRevenueYear">$0.00</span></div>
+                        <div class="flex justify-between"><span>Panoptyc Cost/Store/Year (Software+Hardware)<br>Limited Scale ($):</span> <span class="output-value" id="panoptycCostLimitedScale">$0.00</span></div>
+                        <div class="flex justify-between"><span>Panoptyc Cost/Store/Year (Software+Hardware)<br>300+ Stores Scale ($):</span> <span class="output-value" id="panoptycCostExtendedScale">$0.00</span></div>
+                        <div class="flex justify-between"><span>Reduction In Theft/Store/Year ($):</span> <span class="output-value" id="reductionInTheftPerStore">$0.00</span></div>
+                        <div class="flex justify-between"><span>Shrink From Cashier Theft/Store/Year ($):</span> <span class="output-value" id="shrinkCashierTheftPerStore">$0.00</span></div>
+                    </div>
+                </div>
+
+                <!-- Financial Performance & ROI Section -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-gray-700 text-panoptyc-red mb-2">Financial Performance & ROI</h2>
+                    <div class="space-y-2">
+                        <div class="flex justify-between"><span>IRR Limited Scale (%):</span> <span class="output-value" id="irrLimitedScale">%</span></div>
+                        <div class="flex justify-between"><span>IRR Extended Scale (%):</span> <span class="output-value" id="irrExtendedScale">%</span></div>
+                        <div class="flex justify-between"><span>Enterprise-Wide Deployment ROI Per Year ($):</span> <span class="output-value" id="enterpriseRoiPerYear">$0.00</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variable to hold the name of the manually selected plan, if any
+        let manuallySelectedPlanName = null; // No longer used for multiple plans, can be simplified or removed
+
+        // Define plan data for the single tier
+        const plans = {
+            SingleTier: { pricePerKiosk: 200, reviewsPerKiosk: 16, colorClass: 'plan-single-tier', cardId: 'singleTierPlanCard', recommendedClass: 'recommended-plan-single-tier', pricePerKioskLargeScale: 150 }
+        };
+
+        // Define fixed hardware cost per store
+        const hardwareCostPerStore = 2000 / 60; // Equivalent to $33.33 recurring hardware cost per store
+
+        // Get references to input elements
+        const numLocsInput = document.getElementById('numLocs');
+        const annualRevenueInput = document.getElementById('annualRevenue');
+        const shrinkPercentInput = document.getElementById('shrinkPercent');
+        const anticipatedReductionInput = document.getElementById('anticipatedReduction');
+
+        // Remaining output elements
+        const cashierTheftShrinkPercentageEl = document.getElementById('cashierTheftShrinkPercentage');
+        const totalShrinkCashierTheftYearEl = document.getElementById('totalShrinkCashierTheftYear');
+        const totalRevenueYearEl = document.getElementById('totalRevenueYear');
+        const panoptycCostLimitedScaleEl = document.getElementById('panoptycCostLimitedScale');
+        const panoptycCostExtendedScaleEl = document.getElementById('panoptycCostExtendedScale');
+        const reductionInTheftPerStoreEl = document.getElementById('reductionInTheftPerStore');
+        const shrinkCashierTheftPerStoreEl = document.getElementById('shrinkCashierTheftPerStore');
+        const irrLimitedScaleEl = document.getElementById('irrLimitedScale');
+        const irrExtendedScaleEl = document.getElementById('irrExtendedScale');
+        const enterpriseRoiPerYearEl = document.getElementById('enterpriseRoiPerYear');
+
+
+        // Function to format numbers as currency
+        function formatCurrency(value) {
+            return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        // Function to format numbers as percentage
+        function formatPercentage(value) {
+            return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+        }
+
+        // Main function to calculate and display all metrics
+        function calculateAndDisplay() {
+            // Parse input values, defaulting to 0 if invalid
+            const numLocs = parseInt(numLocsInput.value) || 0;
+            const annualRevenue = parseFloat(annualRevenueInput.value) || 0;
+            const shrinkPercentDecimal = parseFloat(shrinkPercentInput.value) / 100.0 || 0; // Stored as decimal for calculations
+            const shrinkPercentRaw = parseFloat(shrinkPercentInput.value) || 0; // Stored as raw percentage for display
+            const anticipatedReductionPercent = parseFloat(anticipatedReductionInput.value) / 100.0 || 0;
+
+            // Calculate total annual shrink in dollars (used for projected reduction)
+            const totalAnnualShrinkDollars = annualRevenue * shrinkPercentDecimal;
+
+            // Calculate and display "Cashier Theft Shrink Percentage at 1/3 of theft:"
+            const cashierTheftPercentage = shrinkPercentRaw / 3; // Use raw percentage for this display
+            if (cashierTheftShrinkPercentageEl) {
+                cashierTheftShrinkPercentageEl.textContent = formatPercentage(cashierTheftPercentage);
+            }
+
+            // Simplified plan-related variables since there's only one implicit plan
+            const currentPlanDetails = plans.SingleTier;
+            const currentPlanAnnualCostTotal = (currentPlanDetails.pricePerKiosk * numLocs) * 12;
+
+
+            // --- Metrics Calculations ---
+            // Total Revenue/Year ($)
+            const totalRevenueYear = annualRevenue * numLocs;
+            if (totalRevenueYearEl) {
+                totalRevenueYearEl.textContent = formatCurrency(totalRevenueYear);
+            }
+
+            // Total Shrink From Cashier Theft/Year ($)
+            const totalShrinkCashierTheftYear = totalRevenueYear * (cashierTheftPercentage / 100);
+            if (totalShrinkCashierTheftYearEl) {
+                totalShrinkCashierTheftYearEl.textContent = formatCurrency(totalShrinkCashierTheftYear);
+            }
+
+            // Panoptyc Cost/Store/Year (Software+Hardware) Limited Scale ($)
+            const panoptycCostLimitedScale = (plans.SingleTier.pricePerKiosk * 12) + hardwareCostPerStore;
+            if (panoptycCostLimitedScaleEl) {
+                panoptycCostLimitedScaleEl.textContent = formatCurrency(panoptycCostLimitedScale);
+            }
+
+            // Panoptyc Cost/Store/Year (Software+Hardware) 300+ Stores Scale ($)
+            const panoptycCostExtendedScale = (plans.SingleTier.pricePerKioskLargeScale * 12) + hardwareCostPerStore;
+            if (panoptycCostExtendedScaleEl) {
+                panoptycCostExtendedScaleEl.textContent = formatCurrency(panoptycCostExtendedScale);
+            }
+
+            // Shrink From Cashier Theft/Store/Year ($)
+            let shrinkCashierTheftPerStore = 0;
+            if (numLocs > 0) { // Avoid division by zero
+                shrinkCashierTheftPerStore = totalShrinkCashierTheftYear / numLocs;
+            }
+            if (shrinkCashierTheftPerStoreEl) {
+                shrinkCashierTheftPerStoreEl.textContent = formatCurrency(shrinkCashierTheftPerStore);
+            }
+
+            // Reduction In Theft/Store/Year ($)
+            const reductionInTheftPerStore = shrinkCashierTheftPerStore * anticipatedReductionPercent;
+            if (reductionInTheftPerStoreEl) {
+                reductionInTheftPerStoreEl.textContent = formatCurrency(reductionInTheftPerStore);
+            }
+
+            // IRR Limited Scale (%): (Reduction In Theft/Store/Year - Panoptyc Cost/Store/Year Limited Scale) / Panoptyc Cost/Store/Year Limited Scale * 100
+            let irrLimitedScale = 0;
+            if (panoptycCostLimitedScale > 0) {
+                irrLimitedScale = ((reductionInTheftPerStore - panoptycCostLimitedScale) / panoptycCostLimitedScale) * 100;
+            }
+            if (irrLimitedScaleEl) {
+                irrLimitedScaleEl.textContent = formatPercentage(irrLimitedScale);
+                // Apply red color if negative, otherwise ensure default/no specific color
+                if (irrLimitedScale < 0) {
+                    irrLimitedScaleEl.classList.add('text-red-500');
+                } else {
+                    irrLimitedScaleEl.classList.remove('text-red-500');
+                }
+            }
+
+            // IRR Extended Scale (%): (Reduction In Theft/Store/Year - Panoptyc Cost/Store/Year 300+ Stores Scale) / Panoptyc Cost/Store/Year 300+ Stores Scale * 100
+            let irrExtendedScale = 0;
+            if (panoptycCostExtendedScale > 0) {
+                irrExtendedScale = ((reductionInTheftPerStore - panoptycCostExtendedScale) / panoptycCostExtendedScale) * 100;
+            }
+            if (irrExtendedScaleEl) {
+                irrExtendedScaleEl.textContent = formatPercentage(irrExtendedScale);
+                // Apply red color if negative, otherwise ensure default/no specific color
+                if (irrExtendedScale < 0) {
+                    irrExtendedScaleEl.classList.add('text-red-500');
+                } else {
+                    irrExtendedScaleEl.classList.remove('text-red-500');
+                }
+            }
+
+            // Enterprise-Wide Deployment ROI Per Year ($)
+            const enterpriseRoiPerYear = (reductionInTheftPerStore * numLocs) - (panoptycCostExtendedScale * numLocs);
+            if (enterpriseRoiPerYearEl) {
+                enterpriseRoiPerYearEl.textContent = formatCurrency(enterpriseRoiPerYear);
+                // Apply red color if negative, otherwise ensure default/no specific color
+                if (enterpriseRoiPerYear < 0) {
+                    enterpriseRoiPerYearEl.classList.add('text-red-500');
+                } else {
+                    enterpriseRoiPerYearEl.classList.remove('text-red-500');
+                }
+            }
+        }
+
+        // Add event listeners to input fields to trigger recalculation
+        [numLocsInput, annualRevenueInput, shrinkPercentInput, anticipatedReductionInput].forEach(input => {
+            input.addEventListener('input', () => {
+                calculateAndDisplay();
+            });
+        });
+
+        // Initial calculation and display when the page loads
+        calculateAndDisplay();
+    </script>
+</body>
+</html>
